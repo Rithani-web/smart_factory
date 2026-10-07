@@ -11,6 +11,29 @@ Smart Factory Production Automation System: report a production/machine event, a
 assign an on-duty technician, notify them, and walk the event through acknowledgement and
 resolution with a complete lifecycle trail — with authenticated, role-based access."
 
+## Clarifications
+
+### Session 2026-10-07
+
+- Q: Does this system serve one single factory organization, or must it support multiple
+  isolated organizations sharing one installation? → A: Single shared organization — one
+  deployment serves one factory; no organization boundary exists in the data model, and
+  multi-tenancy is out of scope for every spec in this exercise.
+- Q: Can an Admin move an event to a different technician after it has already been
+  assigned or acknowledged? → A: Yes — Admin can reassign any active event (Open,
+  Assigned, or Acknowledged) to another technician; each reassignment is recorded in the
+  lifecycle history.
+- Q: Should Viewers see the assigned technician's full contact details including email?
+  → A: Personal details stay minimal — event views show only a person's name and role;
+  email addresses are never displayed in any view (they exist only for sign-in and
+  notification delivery).
+- Q: Must a technician acknowledge an event before they are allowed to resolve it?
+  → A: Yes — a technician MUST acknowledge an event before resolving it (resolve only
+  from Acknowledged status); an Admin MAY resolve from any active status.
+- Q: When an Admin creates a new user account, how does that person get their password?
+  → A: The Admin sets a temporary password; the user MUST choose their own new password
+  at first sign-in before performing any other action.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Authenticated, role-gated access (Priority: P1)
@@ -38,6 +61,8 @@ role (signed in and not signed in) and verifying allowed/rejected outcomes.
    an event, **Then** the action is rejected server-side and nothing changes.
 4. **Given** an Admin signed in, **When** they perform any lifecycle action on an event,
    **Then** the action is permitted.
+5. **Given** a new account still on its Admin-set temporary password, **When** the user
+   signs in, **Then** they must set their own new password before any other action.
 
 ---
 
@@ -141,6 +166,9 @@ verifying rejection.
    **Then** it becomes Resolved.
 3. **Given** a resolution attempt without resolution notes, **When** submitted, **Then**
    the action is rejected with a message that notes are required.
+4. **Given** an event in Assigned status (not yet acknowledged), **When** the assigned
+   technician attempts to resolve it, **Then** the action is rejected with a message
+   that the event must be acknowledged first.
 
 ---
 
@@ -174,9 +202,10 @@ verifying the history view lists every transition in order with actor and timest
 - What happens when the assigned technician is no longer on duty at acknowledge time? →
   The assignment stands for the lifecycle of the event; roster changes do not retroactively
   reassign open events (reassignment rules are spec/002 territory).
-- How does the system handle resolving an event that was never acknowledged? → Admin may
-  resolve; a technician who was assigned may resolve; the history shows the skipped
-  acknowledgement honestly rather than fabricating one.
+- How does the system handle resolving an event that was never acknowledged? → An Admin
+  may resolve it, and the history shows the skipped acknowledgement honestly rather than
+  fabricating one; a technician may NOT — their resolve attempt is rejected until they
+  acknowledge the event (FR-012).
 - What happens when an email cannot be delivered? → Assignment remains valid; the system
   records the notification attempt and its failure; delivery failure does not silently
   mark an event notified.
@@ -207,7 +236,8 @@ verifying the history view lists every transition in order with actor and timest
 - **FR-011**: System MUST allow only the assigned technician — or an Admin — to
   acknowledge an event, and only while it is in Assigned status.
 - **FR-012**: System MUST allow only the assigned technician — or an Admin — to resolve
-  an event, from Assigned or Acknowledged status.
+  an event. A technician MUST have acknowledged the event first (technician resolve is
+  possible only from Acknowledged status); an Admin MAY resolve from any active status.
 - **FR-013**: System MUST require non-empty resolution notes to resolve an event.
 - **FR-014**: System MUST retain a complete, chronological lifecycle history per event:
   every status transition with timestamp and actor.
@@ -215,16 +245,26 @@ verifying the history view lists every transition in order with actor and timest
   with status and severity, and each event's detail including history.
 - **FR-016**: System MUST reject with a clear message any action attempted by a role that
   is not permitted to perform it, without changing any state.
+- **FR-017**: System MUST allow an Admin to reassign an active event (Open, Assigned, or
+  Acknowledged) to another technician, replacing the active assignment and recording the
+  reassignment in the lifecycle history.
+- **FR-018**: Event views MUST keep personal details minimal: only a person's name and
+  role are shown; email addresses MUST NOT appear in any view for any role.
+- **FR-019**: Accounts created by an Admin MUST start with a temporary password, and the
+  user MUST set their own new password at first sign-in before any other action is
+  possible.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Production Event**: the central record — title, description, severity
   (Low/Medium/High/Critical), machine/line reference, status (Open → Assigned →
   Acknowledged → Resolved), reporter, created/acknowledged/resolved timestamps.
-- **User**: an account with role (Admin, Technician, Viewer), name, email. Technicians
-  are the assignable responders.
+- **User**: an account with role (Admin, Technician, Viewer), name, email. Email is
+  internal-only — sign-in and notification delivery — and is never displayed (FR-018).
+  Technicians are the assignable responders.
 - **Assignment**: links an event to the technician responsible for it, with assignment
-  time; one active assignment per event in MVP.
+  time; one active assignment per event in MVP — an Admin reassignment (FR-017) replaces
+  the active assignment, and the prior one survives in history.
 - **Duty Roster Entry**: declares which technician is on duty at a given time (minimal in
   this feature — enough to answer "who is on duty now"; full roster/escalation rules come
   in spec/002).
@@ -255,6 +295,8 @@ verifying the history view lists every transition in order with actor and timest
 
 ## Assumptions
 
+- The system serves a single factory organization (clarified 2026-10-07): no organization
+  entity, field, or filter exists anywhere in the model.
 - Authentication is email + password; users stay signed in across actions through the
   project's secure token-based session mechanism (defined by the project brief and
   constitution, not by this specification).
