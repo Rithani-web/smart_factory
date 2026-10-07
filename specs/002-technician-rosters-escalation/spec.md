@@ -16,6 +16,22 @@ Admin/Production Manager if still unacknowledged. Escalation timing logic must b
 unit-tested with injectable/mocked time, not real waiting. Log each escalation step on
 the event's existing timeline/history. Same SDD workflow, same architecture and stack."
 
+## Clarifications
+
+### Session 2026-10-07
+
+- Q: Should rotation teams replace or coexist with the spec/001 window-based duty
+  roster as the assignment source? → A: Replace — rotation teams are the single source
+  of truth; the spec/001 window table is migrated away; "no team configured → event
+  stays OPEN and unassigned" behavior is preserved.
+- Q: Which rotation cadences must be supported? → A: Exactly `WEEKLY` and `DAILY`,
+  configurable per team, with a team-level anchor date-time.
+- Q: What are the default escalation windows per severity? → A: CRITICAL 5 min,
+  HIGH 15 min, MEDIUM 60 min, LOW never (no window).
+- Q: What happens after escalation reaches the designated Admin? → A: Terminal — no
+  further escalation; the designated Admin comes from team settings with fallback to
+  the lowest-id ADMIN account.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Team rotation roster (Priority: P1)
