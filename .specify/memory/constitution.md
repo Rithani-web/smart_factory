@@ -1,71 +1,79 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.1.0
-- Modified principles: VI. Course Fidelity & Simplicity (stack enumeration corrected —
-  no change to principle intent)
-- Added sections: none (Fixed Technology Stack & Domain Fidelity materially expanded
-  with the authoritative stack: TS frontend/backend, JWT/RBAC auth)
-- Removed sections: none
+- Version change: 1.1.0 → 1.2.0
+- Modified principles: restructured Core Principles to the course's ratified set
+  (Nebula KnowLab "Spec-Driven Development with AI" walkthrough, user-provided):
+  I. Spec-Driven Development · II. Mandatory Server-Side Authorization ·
+  III. End-to-End TypeScript Types · IV. Single Source of Truth for Schema ·
+  V. Secure Authentication by Default · VI. Course Fidelity & Simplicity (retained)
+- Added sections: none
+- Removed sections: former principle-level Clarification Gates and
+  Verification & Convergence — their rules moved into
+  "Development Workflow & Quality Gates" (course parity: the course ratifies 5)
 - Follow-up TODOs: test runner (Vitest vs Jest) deferred to spec/001 plan time
-- Reason for MINOR bump: materially expanded/corrected stack guidance from authoritative
-  project brief; no principle added, removed, or redefined
+- Reason for MINOR bump: principles restructured/expanded to match the course's
+  ratified set; no principle removed from effect (workflow gates preserved)
 -->
 
 # Smart Factory Production Automation System Constitution
 
 ## Core Principles
 
-### I. Specification-First
+### I. Spec-Driven Development
 
-No feature work begins before an approved specification exists. Every increment of this
-system MUST be expressed as a specification (Spec Kit `specify`) that states the desired
-behavior in unambiguous, testable language before any planning or implementation occurs.
-Rationale: the course's central claim — specifications, not prompts, drive AI-assisted
-engineering; ad-hoc prompting produces the "illusion of completeness".
+Specifications are the source of truth for what the system MUST do. No implementation
+begins without an approved specification, and every specification claim MUST be stated
+as a testable contract (given input → expected outcome). Work proceeds only through the
+Spec Kit lifecycle: specify → clarify → plan → tasks → implement → verify. Rationale:
+specifications, not ad-hoc prompts, drive AI-assisted engineering; prompting alone
+produces the "illusion of completeness".
 
-### II. Contracts are Testable Agreements
+### II. Mandatory Server-Side Authorization
 
-Every behavioral claim in a specification MUST be written as a contract: a concrete,
-machine-verifiable statement of expected system behavior (given input → expected outcome).
-A claim that cannot be verified by an executed check MUST be rewritten or removed.
-Rationale: contracts convert prose requirements into acceptance criteria that verification
-can gate on.
+Every permission check MUST be enforced on the server for every operation. Role checks
+in the client interface are presentation only and MUST NOT be trusted as access control.
+Any operation reachable without the required role is a defect regardless of what the
+UI shows. Rationale: the client is an untrusted boundary; authorization lives where the
+data lives.
 
-### III. Clarification Gates (NON-NEGOTIABLE)
+### III. End-to-End TypeScript Types
 
-Ambiguity MUST be resolved before planning, never guessed by AI. Underspecified areas in a
-specification are resolved through a clarification pass (`clarify`) that asks targeted
-questions and encodes the answers back into the spec. Implementation MUST NOT start while a
-material ambiguity remains open. Rationale: silent guessing is the primary failure mode of
-AI-assisted development; the gate makes assumptions explicit and approved.
+TypeScript MUST be used everywhere, and types MUST flow end-to-end: the same type
+definitions MUST describe a data contract at the schema boundary, on the server, and in
+the client. Duplicated or hand-maintained divergent shapes for the same contract are a
+defect. When a contract changes, one change MUST propagate to both sides. Rationale:
+type drift between backend and frontend is the primary source of silent contract
+violations in a TypeScript codebase.
 
-### IV. Verification & Convergence (NON-NEGOTIABLE)
+### IV. Single Source of Truth for Schema
 
-An implementation is DONE only when its behavior is verified against the specification.
-Each feature MUST run a verification pass comparing implementation behavior with the
-spec's contracts, and MUST iterate (implement → verify) until checks report convergence.
-Missing verification is not a successful implementation. Rationale: the course defines
-completion as convergence with the contract, not as "code that was written".
+The database schema MUST be defined in exactly one place, and everything else —
+migrations, server types, client types — MUST derive from it. Hand-written parallel
+structures that restate the schema (second copies of models, duplicated field lists)
+MUST NOT exist. A schema change is made once, in the source of truth, and propagated.
+Rationale: any second copy of the schema will eventually disagree with the first, and
+the disagreement surfaces as runtime defects.
 
-### V. Schema & Contract Decoupling
+### V. Secure Authentication by Default
 
-Data models (schema) and behavioral contracts MUST be designed independently of
-implementation details. Specifications and contracts MUST NOT name internal classes,
-functions, or file layouts; they MUST describe observable data and behavior only.
-Implementation selects structures that satisfy the contracts. Rationale: the course teaches
-contract modeling as separable from implementation so the spec survives implementation
-choices.
+Authentication and secure session handling MUST be built in from the first runnable
+increment, never bolted on later. Passwords MUST be stored only as salted hashes.
+Session tokens MUST be delivered so that client scripts cannot read them (HTTP-only
+cookies) and MUST expire; renewal MUST use refresh tokens. Secrets (database URLs,
+token-signing keys, email API keys) MUST live only in `.env` and MUST never be
+committed. Rationale: retrofitting authentication is the most expensive defect class;
+the course project treats security as a default, not a feature.
 
 ### VI. Course Fidelity & Simplicity
 
-This project is the course's incident-management exercise with the domain substituted to
-Smart Factory Production Automation. Architecture, complexity, spec structure
+This project is the course's incident-management exercise with the domain substituted
+to Smart Factory Production Automation. Architecture, complexity, spec structure
 (spec/001–004), and workflow MUST mirror the original course exercise (see
 `docs/ORIGINAL-BASELINE.md`, `docs/DOMAIN-MAPPING.md`). Where manufacturing realism
 conflicts with course fidelity, course fidelity wins. No technology MAY be added beyond
 the fixed stack: no IoT, ML, predictive maintenance, microservices, or event streaming.
-Rationale: the purpose is learning the course's SDD method exactly; additions dilute the
-exercise.
+Rationale: the purpose is learning the course's SDD method exactly; additions dilute
+the exercise.
 
 ## Fixed Technology Stack & Domain Fidelity
 
@@ -83,15 +91,17 @@ original project specifications explicitly require them.
 - Email/notifications: Resend, worded as production/maintenance alerts.
 - Testing: contract tests assert observable API behavior against the specs; runner
   (Vitest or Jest) chosen at spec/001 plan time and then fixed.
-- Terminology: incident → production/machine event; on-call engineer → on-duty
-  technician; on-call roster → technician/maintenance roster; escalation → maintenance
-  escalation; acknowledgement → technician acknowledgement; resolution → issue
-  resolution. Full mapping: `docs/DOMAIN-MAPPING.md`.
 
 ## Development Workflow & Quality Gates
 
 - Lifecycle per feature: `specify` → `clarify` (gate) → `plan` → `roadmap/tasks` →
   `implement` → `verify`/`converge`, run in that order without skipping gates.
+- **Clarification gate**: ambiguity MUST be resolved through `clarify` before planning;
+  AI MUST NOT guess at material ambiguity, and implementation MUST NOT start while one
+  remains open.
+- **Verification & convergence**: an implementation is DONE only when verified against
+  the spec's contracts; implement → verify repeats until checks report convergence.
+  Missing verification is not a successful implementation.
 - Constitution check: `plan` MUST verify compliance with this constitution before tasks
   are generated.
 - Quality gates: (1) spec has no unresolved material ambiguities; (2) every acceptance
@@ -113,4 +123,4 @@ original project specifications explicitly require them.
   before the relevant spec, plan, and tasks are approved.
 - Runtime development guidance lives in `.specify/` templates and `docs/` mapping files.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.2.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
