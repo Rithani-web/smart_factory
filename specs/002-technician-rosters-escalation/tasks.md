@@ -1,6 +1,6 @@
 # Tasks: Technician Rosters and Escalation Rules (spec/002)
 
-**Prerequisites**: plan.md ✅ · spec.md ✅ (clarified 4/4) · research.md ✅ (D11–D15) · data-model.md ✅ · contracts/teams-and-policies.md ✅ · quickstart.md ✅
+**Prerequisites**: plan.md ✅ · spec.md ✅ (clarified 4/4) · research.md ✅ (D11–D15) · data-model.md ✅ · contracts/rest-api.md ✅ · quickstart.md ✅
 
 **Tests**: REQUIRED (constitution gates); escalation timing uses injected clock only (FR-113).
 
@@ -30,7 +30,7 @@
       (any role; members ordered by position; onDuty computed via T003;
       escalationAdmin included), POST /api/teams + PUT /api/teams/:id (ADMIN;
       validate cadence, ≥1 TECHNICIAN memberIds, positions dense) per
-      contracts/teams-and-policies.md
+      contracts/rest-api.md
 - [x] T006 Contract test `backend/tests/contract/teams.contract.test.ts`:
       VIEWER/TECHNICIAN read 200; writes 403 for VIEWER/TECHNICIAN (server-side,
       FR-104); ADMIN creates team with ordered members; on-duty reflects rotation
