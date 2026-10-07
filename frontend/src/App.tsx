@@ -6,6 +6,7 @@ import EventDetail from './pages/EventDetail.tsx';
 import EventsList from './pages/EventsList.tsx';
 import FirstPasswordChange from './pages/FirstPasswordChange.tsx';
 import Login from './pages/Login.tsx';
+import Teams from './pages/Teams.tsx';
 
 function Shell() {
   const { user, setUser } = useAuth();
@@ -26,6 +27,11 @@ function Shell() {
             Smart Factory
           </Link>
           <span className="text-sm text-slate-400">Production Automation</span>
+          {user && (
+            <Link to="/teams" className="text-sm hover:underline">
+              Teams
+            </Link>
+          )}
           <div className="ml-auto flex items-center gap-3 text-sm">
             {user ? (
               <>
@@ -60,6 +66,14 @@ function Shell() {
             element={
               <RequireAuth>
                 <EventsList />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/teams"
+            element={
+              <RequireAuth>
+                <Teams />
               </RequireAuth>
             }
           />

@@ -41,6 +41,12 @@ enum HistoryAction {
   REASSIGNED
   ACKNOWLEDGED
   RESOLVED
+  ESCALATED
+}
+
+enum RotationCadence {
+  WEEKLY
+  DAILY
 }
 
 model User {
@@ -55,7 +61,8 @@ model User {
   reportedEvents       ProductionEvent[]  @relation("Reporter")
   resolvedEvents       ProductionEvent[]  @relation("Resolver")
   assignments          Assignment[]
-  rosterEntries        DutyRosterEntry[]
+  teamsLed             Team[]             @relation("TeamEscalationAdmin")
+  teamMemberships      TeamMembership[]   @relation("TeamMemberships")
   notifications        Notification[]
   historyEntries       HistoryEntry[]
 }
@@ -75,6 +82,10 @@ model ProductionEvent {
   acknowledgedAt  DateTime?
   resolvedAt      DateTime?
   createdAt       DateTime    @default(now())
+
+  // spec/002 escalation state (research D13)
+  ackDeadline    DateTime?
+  escalationStep Int       @default(0)
 
   assignments   Assignment[]
   notifications Notification[]
@@ -96,14 +107,35 @@ model Assignment {
   @@index([eventId, active])
 }
 
-model DutyRosterEntry {
-  id           String   @id @default(cuid())
-  technicianId String
-  technician   User     @relation(fields: [technicianId], references: [id])
-  startsAt     DateTime
-  endsAt       DateTime
+model Team {
+  id                String          @id @default(cuid())
+  name              String          @unique
+  cadence           RotationCadence
+  anchorAt          DateTime
+  escalationAdminId String?
+  escalationAdmin   User?           @relation("TeamEscalationAdmin", fields: [escalationAdminId], references: [id])
+  createdAt         DateTime        @default(now())
 
-  @@index([technicianId, startsAt, endsAt])
+  members TeamMembership[]
+
+  @@index([createdAt])
+}
+
+model TeamMembership {
+  id           String @id @default(cuid())
+  teamId       String
+  team         Team   @relation(fields: [teamId], references: [id])
+  technicianId String
+  technician   User   @relation("TeamMemberships", fields: [technicianId], references: [id])
+  position     Int
+
+  @@unique([teamId, technicianId])
+  @@index([teamId, position])
+}
+
+model EscalationPolicy {
+  severity      Severity @id
+  windowMinutes Int?
 }
 
 model Notification {

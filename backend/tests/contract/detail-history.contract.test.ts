@@ -1,7 +1,7 @@
 import { beforeAll, afterEach, describe, expect, it } from 'vitest';
 
 import {
-  addRosterEntry,
+  seedTeam,
   cleanEvents,
   createEventViaApi,
   loginAs,
@@ -25,7 +25,7 @@ describe('US6 detail & lifecycle history (FR-014/015)', () => {
     const tech = await (await import('../../src/shared/prisma.ts')).getPrisma().user.findUniqueOrThrow({
       where: { email: 'tech@test.local' },
     });
-    await addRosterEntry(tech.id);
+    await seedTeam([tech.id]);
 
     const admin = await loginAs('admin@test.local');
     const created = await createEventViaApi(admin);

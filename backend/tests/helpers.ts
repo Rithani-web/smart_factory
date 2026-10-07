@@ -62,7 +62,9 @@ export async function resetDb(): Promise<void> {
   await db.historyEntry.deleteMany();
   await db.notification.deleteMany();
   await db.assignment.deleteMany();
-  await db.dutyRosterEntry.deleteMany();
+  await db.teamMembership.deleteMany();
+  await db.team.deleteMany();
+  await db.escalationPolicy.deleteMany();
   await db.productionEvent.deleteMany();
   await db.user.deleteMany();
 }
@@ -73,7 +75,9 @@ export async function cleanEvents(): Promise<void> {
   await db.historyEntry.deleteMany();
   await db.notification.deleteMany();
   await db.assignment.deleteMany();
-  await db.dutyRosterEntry.deleteMany();
+  await db.teamMembership.deleteMany();
+  await db.team.deleteMany();
+  await db.escalationPolicy.deleteMany();
   await db.productionEvent.deleteMany();
 }
 
@@ -90,15 +94,25 @@ export async function loginAs(
   return agent;
 }
 
-export async function addRosterEntry(technicianId: string): Promise<void> {
-  const now = new Date();
-  await getPrisma().dutyRosterEntry.create({
+/** Seed a rotation team whose position 0 is on duty right now (spec/002).
+ * Default anchor = 1 h ago on a WEEKLY cadence → elapsed periods = 0. */
+export async function seedTeam(
+  memberIds: string[],
+  opts: { name?: string; anchorOffsetMs?: number; escalationAdminId?: string } = {},
+): Promise<string> {
+  const now = Date.now();
+  const team = await getPrisma().team.create({
     data: {
-      technicianId,
-      startsAt: new Date(now.getTime() - 60_000),
-      endsAt: new Date(now.getTime() + 60 * 60 * 1000),
+      name: opts.name ?? `Test Team ${now}-${Math.floor(Math.random() * 1e6)}`,
+      cadence: 'WEEKLY',
+      anchorAt: new Date(now - (opts.anchorOffsetMs ?? 60 * 60 * 1000)),
+      escalationAdminId: opts.escalationAdminId ?? null,
+      members: {
+        create: memberIds.map((technicianId, position) => ({ technicianId, position })),
+      },
     },
   });
+  return team.id;
 }
 
 export async function createEventViaApi(

@@ -12,6 +12,7 @@ export const HISTORY_ACTIONS = [
   'REASSIGNED',
   'ACKNOWLEDGED',
   'RESOLVED',
+  'ESCALATED',
 ] as const;
 export type HistoryAction = (typeof HISTORY_ACTIONS)[number];
 

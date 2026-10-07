@@ -16,6 +16,8 @@ import {
 } from '../shared/errors.ts';
 import { getPrisma } from '../shared/prisma.ts';
 import { recordAndSend } from '../notifications/service.ts';
+import { firstTeamRotation } from '../teams/service.ts';
+import { windowFor } from '../escalation/policies.ts';
 import { SEVERITIES } from '@smart-factory/types';
 
 const ACTIVE_STATUSES = ['OPEN', 'ASSIGNED', 'ACKNOWLEDGED'] as const;
@@ -55,6 +57,7 @@ export async function createEvent(
   }
 
   const db = getPrisma();
+  const now = new Date();
   const id = await db.$transaction(async (tx) => {
     const event = await tx.productionEvent.create({
       data: {
@@ -70,40 +73,48 @@ export async function createEvent(
       data: { eventId: event.id, action: 'CREATED', actorId: actor.id },
     });
 
-    // Assignment: first on-duty technician in roster order (research D5, FR-007).
-    const now = new Date();
-    const onDuty = await tx.dutyRosterEntry.findMany({
-      where: { startsAt: { lte: now }, endsAt: { gt: now } },
-      orderBy: { startsAt: 'asc' },
-      include: { technician: { select: { id: true, name: true, role: true } } },
-    });
-    const first = onDuty[0];
-    if (!first) {
-      return { eventId: event.id, unassigned: true as const };
+    // Assignment: current rotation position of the first team (spec/002 FR-105,
+    // replacing the spec/001 window roster — research D14).
+    const rotation = await firstTeamRotation(now, tx);
+    if (!rotation) {
+      return { eventId: event.id, unassigned: true as const, technicianId: null };
     }
+    const onDuty = rotation.members[rotation.onDutyIndex];
     await tx.assignment.create({
-      data: { eventId: event.id, technicianId: first.technicianId, active: true },
+      data: { eventId: event.id, technicianId: onDuty.id, active: true },
     });
+    // Acknowledgement deadline from the severity policy (FR-106/107).
+    const windowMinutes = await windowFor(severity, tx as ReturnType<typeof getPrisma>);
     await tx.productionEvent.update({
       where: { id: event.id },
-      data: { status: 'ASSIGNED' },
+      data: {
+        status: 'ASSIGNED',
+        escalationStep: 0,
+        ackDeadline:
+          windowMinutes != null ? new Date(now.getTime() + windowMinutes * 60_000) : null,
+      },
     });
     await tx.historyEntry.create({
       data: {
         eventId: event.id,
         action: 'ASSIGNED',
         actorId: actor.id,
-        detail: first.technician.name,
+        detail: onDuty.name,
       },
     });
-    return { eventId: event.id, unassigned: false as const, technician: first.technician };
+    return {
+      eventId: event.id,
+      unassigned: false as const,
+      technicianId: onDuty.id,
+      technicianName: onDuty.name,
+    };
   });
 
   // Notification outside the transaction; failure recorded, never fatal (FR-010).
   if (!id.unassigned) {
     const full = await db.productionEvent.findUniqueOrThrow({ where: { id: id.eventId } });
     const email = await db.user.findUniqueOrThrow({
-      where: { id: id.technician.id },
+      where: { id: id.technicianId! },
       select: { id: true, email: true, name: true },
     });
     await recordAndSend(full, email);
@@ -153,7 +164,7 @@ export async function acknowledge(actor: Actor, eventId: string): Promise<EventD
   await db.$transaction([
     db.productionEvent.update({
       where: { id: eventId },
-      data: { status: 'ACKNOWLEDGED', acknowledgedAt: new Date() },
+      data: { status: 'ACKNOWLEDGED', acknowledgedAt: new Date(), ackDeadline: null },
     }),
     db.historyEntry.create({
       data: { eventId, action: 'ACKNOWLEDGED', actorId: actor.id },
@@ -231,6 +242,18 @@ export async function reassign(
     });
     await tx.assignment.create({
       data: { eventId, technicianId, active: true },
+    });
+    // Fresh window for the new assignee (FR-112: a new deadline starts on
+    // reassignment); reset the hop counter.
+    const now = new Date();
+    const windowMinutes = await windowFor(event.severity, tx as ReturnType<typeof getPrisma>);
+    await tx.productionEvent.update({
+      where: { id: eventId },
+      data: {
+        escalationStep: 0,
+        ackDeadline:
+          windowMinutes != null ? new Date(now.getTime() + windowMinutes * 60_000) : null,
+      },
     });
     await tx.historyEntry.create({
       data: {

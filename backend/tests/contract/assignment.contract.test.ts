@@ -2,7 +2,7 @@ import { beforeAll, afterEach, describe, expect, it } from 'vitest';
 
 import { getPrisma } from '../../src/shared/prisma.ts';
 import {
-  addRosterEntry,
+  seedTeam,
   cleanEvents,
   createEventViaApi,
   loginAs,
@@ -29,7 +29,7 @@ describe('US3 auto-assignment & notification (FR-007/008/009/017)', () => {
 
   it('assigns to the on-duty technician, records ASSIGNED, sends one email', async () => {
     const tech = await getPrisma().user.findUniqueOrThrow({ where: { email: 'tech@test.local' } });
-    await addRosterEntry(tech.id);
+    await seedTeam([tech.id]);
 
     const admin = await loginAs('admin@test.local');
     const res = await createEventViaApi(admin);
@@ -67,7 +67,7 @@ describe('US3 auto-assignment & notification (FR-007/008/009/017)', () => {
   it('ADMIN reassign: prior assignment deactivated, REASSIGNED history, re-notified', async () => {
     const tech = await getPrisma().user.findUniqueOrThrow({ where: { email: 'tech@test.local' } });
     const night = await getPrisma().user.findUniqueOrThrow({ where: { email: 'night@test.local' } });
-    await addRosterEntry(tech.id);
+    await seedTeam([tech.id]);
 
     const admin = await loginAs('admin@test.local');
     const created = await createEventViaApi(admin);
@@ -90,7 +90,7 @@ describe('US3 auto-assignment & notification (FR-007/008/009/017)', () => {
 
   it('reassign denied for TECHNICIAN/VIEWER, 404 for unknown technician (FR-016)', async () => {
     const tech = await getPrisma().user.findUniqueOrThrow({ where: { email: 'tech@test.local' } });
-    await addRosterEntry(tech.id);
+    await seedTeam([tech.id]);
     const admin = await loginAs('admin@test.local');
     const created = await createEventViaApi(admin);
     const eventId = created.body.event.id;

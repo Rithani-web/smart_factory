@@ -4,7 +4,7 @@ import { ERROR_CODES } from '@smart-factory/types';
 
 import { getPrisma } from '../../src/shared/prisma.ts';
 import {
-  addRosterEntry,
+  seedTeam,
   cleanEvents,
   createEventViaApi,
   loginAs,
@@ -27,7 +27,7 @@ describe('US5 resolve (FR-012/013, clarify Q4-A)', () => {
 
   async function assignedEvent() {
     const tech = await getPrisma().user.findUniqueOrThrow({ where: { email: 'tech@test.local' } });
-    await addRosterEntry(tech.id);
+    await seedTeam([tech.id]);
     const admin = await loginAs('admin@test.local');
     const created = await createEventViaApi(admin);
     return created.body.event.id;
