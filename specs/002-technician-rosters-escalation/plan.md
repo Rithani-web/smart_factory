@@ -47,7 +47,7 @@ shared/types/src/           # +team.ts, +escalation.ts; HistoryAction + ESCALATE
 ```
 
 Design artifacts: [research.md](./research.md) · [data-model.md](./data-model.md) ·
-[contracts/teams-and-policies.md](./contracts/teams-and-policies.md) ·
+[contracts/rest-api.md](./contracts/teams-and-policies.md) ·
 [quickstart.md](./quickstart.md)
 
 ## Complexity Tracking
