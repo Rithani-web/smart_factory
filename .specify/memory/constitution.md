@@ -1,18 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 → 1.2.0
-- Modified principles: restructured Core Principles to the course's ratified set
-  (Nebula KnowLab "Spec-Driven Development with AI" walkthrough, user-provided):
-  I. Spec-Driven Development · II. Mandatory Server-Side Authorization ·
-  III. End-to-End TypeScript Types · IV. Single Source of Truth for Schema ·
-  V. Secure Authentication by Default · VI. Course Fidelity & Simplicity (retained)
+- Version change: 1.2.0 → 1.3.0
+- Modified principles: VI. Course Fidelity & Simplicity — Fixed Technology Stack
+  section extended by explicit user directive (spec/004 brief, 2026-10-07):
+  + Recharts for dashboard charts (frontend)
+  + Public Factory Status Page: a scoped UNAUTHENTICATED read-only surface
+    (page + /api/public/* aggregate endpoint) — the only exempted route class;
+    it exposes team names and derived/manual status only, never personal data
+    (FR-018 email rule still applies everywhere)
 - Added sections: none
-- Removed sections: former principle-level Clarification Gates and
-  Verification & Convergence — their rules moved into
-  "Development Workflow & Quality Gates" (course parity: the course ratifies 5)
-- Follow-up TODOs: test runner (Vitest vs Jest) deferred to spec/001 plan time
-- Reason for MINOR bump: principles restructured/expanded to match the course's
-  ratified set; no principle removed from effect (workflow gates preserved)
+- Removed sections: none
+- Reason for MINOR bump: materially expanded sanctioned stack per authoritative
+  project brief; no principle weakened — server-side authorization unchanged for
+  every authenticated surface
 -->
 
 # Smart Factory Production Automation System Constitution
@@ -89,8 +89,14 @@ original project specifications explicitly require them.
   access control enforced **server-side**. Roles: Admin, Technician (Production
   Responder), Viewer (domain mapping of the original Admin/Responder/Viewer).
 - Email/notifications: Resend, worded as production/maintenance alerts.
+- Charts: **Recharts** on the frontend (added by user directive in the spec/004
+  brief — the sole sanctioned charting library).
+- Public Status Page: one unauthenticated read-only surface (the `/status` route and
+  its `/api/public/*` data endpoint), scoped to team names and derived/manual
+  operational status — never personal data (no emails, no assignee identities).
+  Every other surface remains behind authentication.
 - Testing: contract tests assert observable API behavior against the specs; runner
-  (Vitest or Jest) chosen at spec/001 plan time and then fixed.
+  fixed as **Vitest** (spec/001 plan, D1).
 
 ## Development Workflow & Quality Gates
 
@@ -123,4 +129,4 @@ original project specifications explicitly require them.
   before the relevant spec, plan, and tasks are approved.
 - Runtime development guidance lives in `.specify/` templates and `docs/` mapping files.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.3.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
