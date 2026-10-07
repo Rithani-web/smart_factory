@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 
 import { getPrisma } from '../src/shared/prisma.ts';
 import { DEFAULT_WINDOWS } from '../src/escalation/policies.ts';
+import { DEFAULT_SLA_TARGETS } from '../src/sla/service.ts';
 
 const DEV_PASSWORD = 'Factory#2026';
 
@@ -83,6 +84,19 @@ async function main(): Promise<void> {
       create: {
         severity: severity as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW',
         windowMinutes,
+      },
+    });
+  }
+
+  // spec/003: SLA targets (clarified Q1 defaults).
+  for (const [severity, t] of Object.entries(DEFAULT_SLA_TARGETS)) {
+    await db.slaTarget.upsert({
+      where: { severity: severity as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' },
+      update: {},
+      create: {
+        severity: severity as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW',
+        ackMinutes: t.ackMinutes,
+        resolveMinutes: t.resolveMinutes,
       },
     });
   }

@@ -1,12 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import type { EventDetailDTO, UserDTO } from '@smart-factory/types';
+import type { EventDetailDTO, SlaDimensionDTO, UserDTO } from '@smart-factory/types';
 
 import { ApiError } from '../services/api.ts';
 import { acknowledgeEvent, getEvent, listUsers, reassignEvent, resolveEvent } from '../services/events.ts';
 import { useAuth } from '../components/guards.tsx';
 import { SeverityBadge, StatusBadge } from '../components/badges.tsx';
+
+const slaChip: Record<SlaDimensionDTO['status'], string> = {
+  MET: 'bg-emerald-100 text-emerald-800',
+  BREACHED: 'bg-red-100 text-red-800',
+  PENDING: 'bg-slate-100 text-slate-600',
+};
+
+function SlaDimensionRow({ label, dim }: { label: string; dim: SlaDimensionDTO }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className={`rounded px-2 py-0.5 text-xs font-medium ${slaChip[dim.status]}`}>
+        {dim.status}
+      </span>
+      <span className="font-medium">{label}</span>
+      <span className="text-slate-500">
+        target {dim.targetMinutes}m · actual {dim.actualMinutes}m
+      </span>
+    </div>
+  );
+}
 
 export default function EventDetail() {
   const { id = '' } = useParams();
@@ -94,6 +114,14 @@ export default function EventDetail() {
           </p>
         )}
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      </div>
+
+      <div className="rounded border bg-white p-4 shadow-sm">
+        <h2 className="mb-2 text-sm font-semibold">SLA status</h2>
+        <div className="space-y-1.5">
+          <SlaDimensionRow label="Time-to-acknowledge" dim={event.sla.acknowledge} />
+          <SlaDimensionRow label="Time-to-resolve" dim={event.sla.resolve} />
+        </div>
       </div>
 
       {(canAcknowledge || canResolve || isAdmin) && (

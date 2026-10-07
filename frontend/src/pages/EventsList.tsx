@@ -50,6 +50,11 @@ export default function EventsList() {
                     Unassigned
                   </span>
                 )}
+                {e.slaBreached && (
+                  <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                    SLA ⚠
+                  </span>
+                )}
               </div>
               <div className="mt-1 text-xs text-slate-500">
                 {e.machineRef} · reported {new Date(e.createdAt).toLocaleString()}

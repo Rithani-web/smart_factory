@@ -18,6 +18,8 @@ import { getPrisma } from '../shared/prisma.ts';
 import { recordAndSend } from '../notifications/service.ts';
 import { firstTeamRotation } from '../teams/service.ts';
 import { windowFor } from '../escalation/policies.ts';
+import { evaluateSla, type SlaTargets } from '../sla/engine.ts';
+import { slaTargetsMap } from '../sla/service.ts';
 import { SEVERITIES } from '@smart-factory/types';
 
 const ACTIVE_STATUSES = ['OPEN', 'ASSIGNED', 'ACKNOWLEDGED'] as const;
@@ -125,30 +127,40 @@ export async function createEvent(
 }
 
 export async function listEvents(): Promise<EventDTO[]> {
-  const events = await getPrisma().productionEvent.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { assignments: { where: { active: true }, select: { id: true } } },
+  const db = getPrisma();
+  const [events, targets] = await Promise.all([
+    db.productionEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { assignments: { where: { active: true }, select: { id: true } } },
+    }),
+    slaTargetsMap(db),
+  ]);
+  const now = new Date();
+  return events.map((e) => {
+    const sla = evaluateSla(e, targets[e.severity], now);
+    return {
+      id: e.id,
+      title: e.title,
+      severity: e.severity,
+      status: e.status,
+      machineRef: e.machineRef,
+      createdAt: e.createdAt.toISOString(),
+      unassigned: e.assignments.length === 0,
+      slaBreached: sla.acknowledge.status === 'BREACHED' || sla.resolve.status === 'BREACHED',
+    };
   });
-  return events.map((e) => ({
-    id: e.id,
-    title: e.title,
-    severity: e.severity,
-    status: e.status,
-    machineRef: e.machineRef,
-    createdAt: e.createdAt.toISOString(),
-    unassigned: e.assignments.length === 0,
-  }));
 }
 
 export async function getEventDetail(id: string): Promise<EventDetailDTO> {
-  const event = await getPrisma().productionEvent.findUnique({
-    where: { id },
-    include: detailInclude,
-  });
+  const db = getPrisma();
+  const [event, targets] = await Promise.all([
+    db.productionEvent.findUnique({ where: { id }, include: detailInclude }),
+    slaTargetsMap(db),
+  ]);
   if (!event) {
     throw notFound('Production event not found');
   }
-  return toDetailDTO(event);
+  return toDetailDTO(event, targets);
 }
 
 export async function acknowledge(actor: Actor, eventId: string): Promise<EventDetailDTO> {
@@ -283,7 +295,10 @@ async function requireEvent(
   return event;
 }
 
-function toDetailDTO(e: EventWithRelations): EventDetailDTO {
+function toDetailDTO(
+  e: EventWithRelations,
+  targets: Record<Severity, SlaTargets>,
+): EventDetailDTO {
   const assignee: UserDTO | null = e.assignments[0]
     ? {
         id: e.assignments[0].technician.id,
@@ -291,6 +306,7 @@ function toDetailDTO(e: EventWithRelations): EventDetailDTO {
         role: e.assignments[0].technician.role,
       }
     : null;
+  const sla = evaluateSla(e, targets[e.severity], new Date());
   return {
     id: e.id,
     title: e.title,
@@ -299,6 +315,7 @@ function toDetailDTO(e: EventWithRelations): EventDetailDTO {
     machineRef: e.machineRef,
     createdAt: e.createdAt.toISOString(),
     unassigned: assignee === null,
+    slaBreached: sla.acknowledge.status === 'BREACHED' || sla.resolve.status === 'BREACHED',
     description: e.description,
     reporter: e.reporter,
     assignee,
@@ -312,5 +329,7 @@ function toDetailDTO(e: EventWithRelations): EventDetailDTO {
       detail: h.detail,
       createdAt: h.createdAt.toISOString(),
     })),
+    // Computed at read time with current targets (FR-205/207).
+    sla,
   };
 }

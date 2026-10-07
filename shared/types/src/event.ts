@@ -1,3 +1,4 @@
+import type { SlaEvaluationDTO } from './sla.ts';
 import type { UserDTO } from './user.ts';
 
 export const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
@@ -26,6 +27,8 @@ export interface EventDTO {
   createdAt: string;
   /** true when the event has no active assignment (FR-008, SC-006). */
   unassigned: boolean;
+  /** compact SLA breach indicator (spec/003 FR-209) */
+  slaBreached: boolean;
 }
 
 export interface HistoryDTO {
@@ -45,6 +48,8 @@ export interface EventDetailDTO extends EventDTO {
   resolvedAt: string | null;
   resolutionNotes: string | null;
   history: HistoryDTO[];
+  /** computed at read time (spec/003 FR-205/207) */
+  sla: SlaEvaluationDTO;
 }
 
 export interface CreateEventRequest {
