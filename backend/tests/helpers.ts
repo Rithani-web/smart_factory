@@ -59,12 +59,14 @@ export async function seedUser(
 
 export async function resetDb(): Promise<void> {
   const db = getPrisma();
+  await db.statusMessage.deleteMany();
   await db.historyEntry.deleteMany();
   await db.notification.deleteMany();
   await db.assignment.deleteMany();
   await db.teamMembership.deleteMany();
   await db.team.deleteMany();
   await db.escalationPolicy.deleteMany();
+  await db.slaTarget.deleteMany();
   await db.productionEvent.deleteMany();
   await db.user.deleteMany();
 }
@@ -72,6 +74,7 @@ export async function resetDb(): Promise<void> {
 /** Clean all transactional tables between tests (keep seeded users). */
 export async function cleanEvents(): Promise<void> {
   const db = getPrisma();
+  await db.statusMessage.deleteMany();
   await db.historyEntry.deleteMany();
   await db.notification.deleteMany();
   await db.assignment.deleteMany();

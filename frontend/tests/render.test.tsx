@@ -5,12 +5,12 @@ import App from '../src/App.tsx';
 import { BrowserRouter } from 'react-router-dom';
 
 describe('frontend smoke', () => {
-  it('renders the app shell with sign-in entry point', () => {
+  it('renders the sign-in entry point for unauthenticated users', async () => {
     render(
       <BrowserRouter>
         <App />
       </BrowserRouter>,
     );
-    expect(screen.getByText('Smart Factory')).toBeTruthy();
+    expect((await screen.findAllByText('Sign in')).length).toBeGreaterThan(0);
   });
 });

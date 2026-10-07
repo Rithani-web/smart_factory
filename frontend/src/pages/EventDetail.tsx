@@ -7,6 +7,7 @@ import { ApiError } from '../services/api.ts';
 import { acknowledgeEvent, getEvent, listUsers, reassignEvent, resolveEvent } from '../services/events.ts';
 import { useAuth } from '../components/guards.tsx';
 import { SeverityBadge, StatusBadge } from '../components/badges.tsx';
+import { Skeleton } from '../components/ui.tsx';
 
 const slaChip: Record<SlaDimensionDTO['status'], string> = {
   MET: 'bg-emerald-100 text-emerald-800',
@@ -60,8 +61,15 @@ export default function EventDetail() {
     }
   };
 
-  if (error && !event) return <p className="text-sm text-red-600">{error}</p>;
-  if (!event) return <p className="text-slate-500">Loading…</p>;
+  if (error && !event) return <p className="text-sm text-bad">{error}</p>;
+  if (!event)
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-2/3" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+    );
 
   const canAcknowledge = event.status === 'ASSIGNED' && (isAssignee || isAdmin);
   const canResolve =

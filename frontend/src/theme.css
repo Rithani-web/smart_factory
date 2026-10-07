@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+/*
+ * Smart Factory design tokens (spec/004, D25) — the single source of the
+ * visual identity. Tailwind v4 generates utilities from these tokens
+ * (bg-surface, text-ink, border-line, bg-brand, …).
+ */
+@theme {
+  --color-canvas: #f2f5f9;
+  --color-surface: #ffffff;
+  --color-ink: #101828;
+  --color-muted: #5b6b7f;
+  --color-line: #e2e8f0;
+  --color-brand: #2456e6;
+  --color-brand-strong: #173dae;
+  --color-brand-soft: #eaf0fe;
+  --color-ok: #12805c;
+  --color-ok-soft: #e5f4ee;
+  --color-warn: #b45309;
+  --color-warn-soft: #fcf1df;
+  --color-bad: #c2321f;
+  --color-bad-soft: #fceae7;
+  --color-shell: #0e1726;
+  --color-shell-ink: #e6ecf5;
+
+  --font-sans: ui-sans-serif, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.08);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

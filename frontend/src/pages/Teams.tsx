@@ -3,60 +3,72 @@ import { useEffect, useState } from 'react';
 import type { TeamDTO } from '@smart-factory/types';
 
 import { api } from '../services/api.ts';
+import { Card, EmptyState, ErrorState, PanelHeader, Skeleton } from '../components/ui.tsx';
 
 export default function Teams() {
   const [teams, setTeams] = useState<TeamDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = () => {
+    setError(null);
     api<TeamDTO[]>('/teams')
       .then(setTeams)
       .catch((e) => setError(e.message));
-  }, []);
+  };
+
+  useEffect(load, []);
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-semibold">Maintenance teams &amp; on-call rotation</h1>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {teams === null && !error && <p className="text-slate-500">Loading…</p>}
+      <h1 className="mb-4 text-lg font-semibold tracking-tight">
+        Maintenance teams &amp; on-call rotation
+      </h1>
+      {error && <ErrorState message={error} onRetry={load} />}
+      {teams === null && !error && (
+        <div className="space-y-3">
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      )}
       {teams?.length === 0 && (
-        <p className="rounded border bg-white p-4 text-slate-500">
-          No teams configured yet — events will remain unassigned until an Admin creates a
-          team.
-        </p>
+        <Card>
+          <EmptyState
+            title="No teams configured yet"
+            hint="Events will remain unassigned until an Admin creates a team."
+          />
+        </Card>
       )}
       <div className="space-y-3">
         {teams?.map((team) => (
-          <div key={team.id} className="rounded border bg-white p-4 shadow-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-semibold">{team.name}</h2>
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium">
-                {team.cadence}
-              </span>
+          <Card key={team.id}>
+            <PanelHeader title={team.name} hint={`Rotation: ${team.cadence.toLowerCase()}`} />
+            <div className="p-5">
               {team.onDuty && (
-                <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                <span className="mb-3 inline-block rounded bg-ok-soft px-2.5 py-0.5 text-xs font-medium text-ok">
                   On duty: {team.onDuty.name}
                 </span>
               )}
+              <ol className="space-y-1 text-sm">
+                {team.members.map((m) => (
+                  <li key={m.id} className="flex items-center gap-2">
+                    <span className="w-6 text-xs text-muted">#{m.position}</span>
+                    <span className={team.onDuty?.id === m.id ? 'font-medium' : ''}>
+                      {m.name}
+                    </span>
+                    {team.onDuty?.id === m.id && (
+                      <span className="text-xs text-ok">← on duty</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-xs text-muted">
+                Anchor: {new Date(team.anchorAt).toLocaleString()}
+                {team.escalationAdmin && (
+                  <> · Escalation manager: {team.escalationAdmin.name}</>
+                )}
+              </p>
             </div>
-            <ol className="mt-2 space-y-1 text-sm">
-              {team.members.map((m) => (
-                <li key={m.id} className="flex items-center gap-2">
-                  <span className="w-6 text-xs text-slate-400">#{m.position}</span>
-                  <span className={team.onDuty?.id === m.id ? 'font-medium' : ''}>
-                    {m.name}
-                  </span>
-                  {team.onDuty?.id === m.id && (
-                    <span className="text-xs text-emerald-700">← on duty</span>
-                  )}
-                </li>
-              ))}
-            </ol>
-            <p className="mt-2 text-xs text-slate-500">
-              Rotation anchor: {new Date(team.anchorAt).toLocaleString()}
-              {team.escalationAdmin && <> · Escalation manager: {team.escalationAdmin.name}</>}
-            </p>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

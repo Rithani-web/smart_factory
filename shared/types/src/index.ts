@@ -5,3 +5,5 @@ export * from './api.ts';
 export * from './team.ts';
 export * from './escalation.ts';
 export * from './sla.ts';
+export * from './status.ts';
+export * from './dashboard.ts';

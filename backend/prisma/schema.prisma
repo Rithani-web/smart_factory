@@ -63,6 +63,7 @@ model User {
   assignments          Assignment[]
   teamsLed             Team[]             @relation("TeamEscalationAdmin")
   teamMemberships      TeamMembership[]   @relation("TeamMemberships")
+  statusMessages       StatusMessage[]    @relation("StatusMessages")
   notifications        Notification[]
   historyEntries       HistoryEntry[]
 }
@@ -116,7 +117,8 @@ model Team {
   escalationAdmin   User?           @relation("TeamEscalationAdmin", fields: [escalationAdminId], references: [id])
   createdAt         DateTime        @default(now())
 
-  members TeamMembership[]
+  members        TeamMembership[]
+  statusMessage  StatusMessage?
 
   @@index([createdAt])
 }
@@ -142,6 +144,16 @@ model SlaTarget {
   severity       Severity @id
   ackMinutes     Int
   resolveMinutes Int
+}
+
+model StatusMessage {
+  id        String   @id @default(cuid())
+  teamId    String   @unique
+  team      Team     @relation(fields: [teamId], references: [id])
+  message   String
+  authorId  String
+  author    User     @relation("StatusMessages", fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Notification {
