@@ -22,27 +22,27 @@ Web-app monorepo (npm workspaces — plan.md): `backend/src/`, `frontend/src/`,
 
 **Purpose**: monorepo skeleton, toolchain, all three workspaces bootable
 
-- [ ] T001 Create npm-workspaces monorepo root: `package.json` with
+- [x] T001 Create npm-workspaces monorepo root: `package.json` with
       `workspaces: ["backend", "frontend", "shared/types"]`, root scripts
       (`dev`, `test`, `lint` delegating per workspace), and base
       `tsconfig.base.json` (strict: true, ES2022, NodeNext) per plan.md
-- [ ] T002 Scaffold `shared/types` workspace: `package.json` (name
+- [x] T002 Scaffold `shared/types` workspace: `package.json` (name
       `@smart-factory/types`), `tsconfig.json`, empty `src/index.ts` exporting all
       type modules — zero runtime dependencies (research D7)
-- [ ] T003 [P] Scaffold `backend` workspace: `package.json` (type: module) with deps
+- [x] T003 [P] Scaffold `backend` workspace: `package.json` (type: module) with deps
       express, @prisma/client, jsonwebtoken, bcrypt, resend and devDeps typescript,
       tsx, vitest, supertest, @types/* — versions pinned per research D1/D3/D4
-- [ ] T004 [P] Scaffold `frontend` workspace with Vite + React + TypeScript + Tailwind
+- [x] T004 [P] Scaffold `frontend` workspace with Vite + React + TypeScript + Tailwind
       CSS (`npm create vite@latest` template react-ts + tailwind init); add
       dependency on `@smart-factory/types` via workspace protocol
-- [ ] T005 [P] Create `backend/.env.example` with every variable quickstart.md §1
+- [x] T005 [P] Create `backend/.env.example` with every variable quickstart.md §1
       names: `DATABASE_URL`, `TEST_DATABASE_URL`, `JWT_ACCESS_SECRET`,
       `JWT_REFRESH_SECRET`, `RESEND_API_KEY`, `MAIL_FROM`, `PORT` — placeholder
       values only
-- [ ] T006 [P] Add Vitest config to backend (`backend/vitest.config.ts`: node
+- [x] T006 [P] Add Vitest config to backend (`backend/vitest.config.ts`: node
       environment, contract/integration include patterns) and to frontend
       (`frontend/vitest.config.ts`: jsdom) per research D1
-- [ ] T007 [P] Configure ESLint + Prettier for all three workspaces (flat config,
+- [x] T007 [P] Configure ESLint + Prettier for all three workspaces (flat config,
       TypeScript strict rules); add root `npm run lint`; verify `npm install` at
       root works and both dev servers start hello-world — then stop: no feature
       code before Phase 2
@@ -56,7 +56,7 @@ everything every user story stands on
 
 **⚠️ CRITICAL**: No user story work begins until this phase is complete
 
-- [ ] T008 Write `backend/prisma/schema.prisma` implementing data-model.md EXACTLY:
+- [x] T008 Write `backend/prisma/schema.prisma` implementing data-model.md EXACTLY:
       enums Role(ADMIN/TECHNICIAN/VIEWER), Severity(LOW/MEDIUM/HIGH/CRITICAL),
       EventStatus(OPEN/ASSIGNED/ACKNOWLEDGED/RESOLVED), NotificationStatus(SENT/FAILED),
       HistoryAction(CREATED/ASSIGNED/REASSIGNED/ACKNOWLEDGED/RESOLVED); models User
@@ -65,42 +65,42 @@ everything every user story stands on
       Assignment(active flag — exactly one active per event), DutyRosterEntry,
       Notification, HistoryEntry; cuid ids, UTC timestamps (Constitution IV — single
       source of truth)
-- [ ] T009 Run `npx prisma migrate dev --name init` against DATABASE_URL (direct Neon
+- [x] T009 Run `npx prisma migrate dev --name init` against DATABASE_URL (direct Neon
       URL for DDL per research D6); commit generated migration
-- [ ] T010 [P] Implement all `shared/types/src/` modules in one pass — user.ts
+- [x] T010 [P] Implement all `shared/types/src/` modules in one pass — user.ts
       (Role, `UserDTO { id, name, role }` — NO email field, FR-018), auth.ts
       (LoginRequest/LoginResponse/CompletePasswordChangeRequest), event.ts
       (Severity, EventStatus, EventDTO, EventDetailDTO with reporter/assignee
       UserDTO + history array, HistoryDTO, CreateEventRequest,
       ResolveEventRequest, ReassignEventRequest), api.ts (`ApiError
       { error: { code, message } }`, list envelopes) per contracts/rest-api.md
-- [ ] T011 [P] Implement uniform error helpers in `backend/src/shared/errors.ts`:
+- [x] T011 [P] Implement uniform error helpers in `backend/src/shared/errors.ts`:
       `httpError(status, code, message)` and the Express error middleware emitting the
       exact `{"error":{"code","message"}}` shape with 400/401/403/404/409 semantics
       (research D9, FR-016)
-- [ ] T012 [P] Implement `backend/src/notifications/mailer.ts`: `Mailer` interface
+- [x] T012 [P] Implement `backend/src/notifications/mailer.ts`: `Mailer` interface
       `{ send(msg: {to, subject, html}): Promise<void> }` + `ResendMailer` adapter
       using RESEND_API_KEY/MAIL_FROM; failing sends THROW so callers record outcomes
       (research D4, FR-010)
-- [ ] T013 Implement backend bootstrap: `backend/src/shared/env.ts` (typed env
+- [x] T013 Implement backend bootstrap: `backend/src/shared/env.ts` (typed env
       loader — fail-fast on missing variables), `backend/src/shared/prisma.ts`
       (singleton PrismaClient), `backend/src/app.ts` (json + cookie parsing,
       /api router mount, error middleware LAST), `backend/src/server.ts` (listen
       on PORT); smoke: GET /api/health → 200
-- [ ] T014 Implement auth middleware in `backend/src/auth/middleware.ts`:
+- [x] T014 Implement auth middleware in `backend/src/auth/middleware.ts`:
       `requireAuth` (verify access JWT from cookie → attach user; 401 on
       missing/invalid), `requireRole(...roles)` (403 on mismatch), and the
       `mustChangePassword` gate — when set, every route except
       complete-password-change returns 403 PASSWORD_CHANGE_REQUIRED (research D10,
       Constitution II/III)
-- [ ] T015 [P] Implement test harness `backend/tests/helpers.ts`: in-memory fake
+- [x] T015 [P] Implement test harness `backend/tests/helpers.ts`: in-memory fake
       Mailer capturing sends, app factory (fresh Express app per test), DB reset
       against TEST_DATABASE_URL (Neon test branch, research D6), cookie-jar helper
       for Supertest
-- [ ] T016 [P] Frontend API client skeleton `frontend/src/services/api.ts`: fetch
+- [x] T016 [P] Frontend API client skeleton `frontend/src/services/api.ts`: fetch
       wrapper with `credentials: "include"`, typed responses ONLY via
       @smart-factory/types, ApiError unwrapping (Constitution III)
-- [ ] T017 Seed script `backend/prisma/seed.ts`: one ADMIN (known dev password),
+- [x] T017 Seed script `backend/prisma/seed.ts`: one ADMIN (known dev password),
       one TECHNICIAN, one VIEWER, and a DutyRosterEntry covering "now" for the
       technician (quickstart §3 precondition) — idempotent
 
@@ -118,12 +118,12 @@ allowed/rejected per the contracts RBAC matrix
 
 ### Tests for User Story 1 (contract — write FIRST, watch them fail)
 
-- [ ] T018 [P] [US1] Contract test `backend/tests/contract/auth.contract.test.ts`:
+- [x] T018 [P] [US1] Contract test `backend/tests/contract/auth.contract.test.ts`:
       login 200 sets httpOnly cookies + returns `{user:{id,name,role,mustChangePassword}}`;
       bad creds 401 INVALID_CREDENTIALS; unauthenticated GET /events → 401;
       VIEWER create-event → 403; VIEWER users list → 403; TECHNICIAN users list → 403
       (FR-001/002/003/016, SC-005)
-- [ ] T019 [P] [US1] Contract test
+- [x] T019 [P] [US1] Contract test
       `backend/tests/contract/first-password.contract.test.ts`: fresh temp-password
       user hits ANY endpoint (incl. GET /events) → 403 PASSWORD_CHANGE_REQUIRED;
       POST /auth/complete-password-change with weak password → 400; with valid new
@@ -131,19 +131,19 @@ allowed/rejected per the contracts RBAC matrix
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Implement `backend/src/auth/service.ts` + `routes.ts`: login
+- [x] T020 [US1] Implement `backend/src/auth/service.ts` + `routes.ts`: login
       (bcrypt compare, access ~15min + refresh ~7d JWTs in httpOnly SameSite=Lax
       cookies), refresh (rotate access), logout (clear), and
       POST /api/auth/complete-password-change (bcrypt-hash new password min 8
       chars, clear mustChangePassword) — mount in app.ts (research D2)
-- [ ] T021 [US1] Implement `backend/src/users/service.ts` + `routes.ts`:
+- [x] T021 [US1] Implement `backend/src/users/service.ts` + `routes.ts`:
       POST /api/users (ADMIN) creating account with generated temporary password
       (returned once in response, mustChangePassword=true, EMAIL_TAKEN 409) and
       GET /api/users (ADMIN) returning UserDTO[] — no email (FR-018/FR-019)
-- [ ] T022 [P] [US1] Frontend auth state `frontend/src/services/auth.ts` (login/
+- [x] T022 [P] [US1] Frontend auth state `frontend/src/services/auth.ts` (login/
       logout/refresh/me against API) + `Login.tsx` page (email+password form, error
       display) with Tailwind styling
-- [ ] T023 [P] [US1] Frontend `FirstPasswordChange.tsx` page shown when
+- [x] T023 [P] [US1] Frontend `FirstPasswordChange.tsx` page shown when
       mustChangePassword=true; route guard `RequireAuth`/`RequireRole` components in
       `frontend/src/components/guards.tsx` (client checks are UX ONLY — server
       remains the authority, Constitution II)
@@ -160,7 +160,7 @@ reporter, timestamp
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] Contract test `backend/tests/contract/create-event.contract.test.ts`:
+- [x] T024 [P] [US2] Contract test `backend/tests/contract/create-event.contract.test.ts`:
       ADMIN + TECHNICIAN → 201 with status OPEN and reporter recorded; missing
       title/severity/machineRef → 400 naming the field; severity not in
       LOW/MEDIUM/HIGH/CRITICAL → 400 (FR-004/005/006); VIEWER POST → 403 (FR-016);
@@ -168,13 +168,13 @@ reporter, timestamp
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Implement `backend/src/events/service.ts` + `routes.ts`:
+- [x] T025 [US2] Implement `backend/src/events/service.ts` + `routes.ts`:
       createEvent() validating all four fields non-empty + severity enum, inserting
       as OPEN with CREATED history entry; POST /api/events (requireRole
       ADMIN,TECHNICIAN) and GET /api/events (any role, newest first, EventDTO
       shape) — assignment intentionally NOT in this task (US3 adds it)
       (FR-004/005/006/014/015)
-- [ ] T026 [P] [US2] Frontend `CreateEvent.tsx` (title, description, machine/line,
+- [x] T026 [P] [US2] Frontend `CreateEvent.tsx` (title, description, machine/line,
       severity select of exactly LOW/MEDIUM/HIGH/CRITICAL) and `EventList.tsx`
       (cards/table with severity + status badges, OPEN-unassigned visible at a
       glance — SC-001/SC-006); wire routes in App.tsx
@@ -191,7 +191,7 @@ them + notification recorded; with empty roster → stays OPEN + unassigned flag
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Contract test
+- [x] T027 [P] [US3] Contract test
       `backend/tests/contract/assignment.contract.test.ts`: with roster entry covering
       now → 201 response status ASSIGNED, active Assignment row for that technician,
       ASSIGNED history entry, fake Mailer captured one send with title/severity/
@@ -203,18 +203,18 @@ them + notification recorded; with empty roster → stays OPEN + unassigned flag
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Extend `backend/src/events/service.ts` createEvent() into ONE
+- [x] T028 [US3] Extend `backend/src/events/service.ts` createEvent() into ONE
       transaction: insert OPEN event → roster query (DutyRosterEntry where
       startsAt<=now<endsAt, roster order, research D5) → if found: Assignment(active)
       + status ASSIGNED + ASSIGNED history; else leave OPEN, response unassigned:true
       (FR-007/008)
-- [ ] T029 [US3] Implement `backend/src/notifications/service.ts` recordAndSend():
+- [x] T029 [US3] Implement `backend/src/notifications/service.ts` recordAndSend():
       call Mailer, insert Notification(SENT) or Notification(FAILED,error) — delivery
       failure never breaks assignment (edge case: email undeliverable)
-- [ ] T030 [US3] Implement reassign in `backend/src/events/service.ts` + route
+- [x] T030 [US3] Implement reassign in `backend/src/events/service.ts` + route
       POST /api/events/:id/reassign (ADMIN only): deactivate prior Assignment, create
       new, REASSIGNED history entry, re-notify new technician (FR-017)
-- [ ] T031 [P] [US3] Frontend: show `assignee {name, role}` on EventDetail and
+- [x] T031 [P] [US3] Frontend: show `assignee {name, role}` on EventDetail and
       assignment info on list; `ReassignDialog.tsx` (ADMIN-only, user picker from
       GET /users) on `frontend/src/pages/EventDetail.tsx` (FR-017/FR-018)
 
@@ -230,7 +230,7 @@ technician → rejected; OPEN event → rejected
 
 ### Tests for User Story 4
 
-- [ ] T032 [P] [US4] Contract test
+- [x] T032 [P] [US4] Contract test
       `backend/tests/contract/acknowledge.contract.test.ts`: assigned technician → 200
       ACKNOWLEDGED + acknowledgedAt + history ACKNOWLEDGED (FR-011, US4-1); different
       technician → 403 (US4-2); acknowledging OPEN event → 409 NOT_ASSIGNED (US4-3);
@@ -238,10 +238,10 @@ technician → rejected; OPEN event → rejected
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Implement acknowledge in `backend/src/events/service.ts` + route
+- [x] T033 [US4] Implement acknowledge in `backend/src/events/service.ts` + route
       POST /api/events/:id/acknowledge: guard status==ASSIGNED (409), actor is
       assigned technician OR ADMIN (403), set status/acknowledgedAt + history entry
-- [ ] T034 [US4] Frontend Acknowledge button on EventDetail (enabled for assigned
+- [x] T034 [US4] Frontend Acknowledge button on EventDetail (enabled for assigned
       technician/admin on ASSIGNED events)
 
 ---
@@ -256,7 +256,7 @@ notes; status → RESOLVED with resolver + time
 
 ### Tests for User Story 5
 
-- [ ] T035 [P] [US5] Contract test
+- [x] T035 [P] [US5] Contract test
       `backend/tests/contract/resolve.contract.test.ts`: technician resolves
       ACKNOWLEDGED event with notes → 200 RESOLVED + resolvedBy/At/notes (US5-1);
       ADMIN resolves from OPEN/ASSIGNED → 200 (US5-2); empty/missing notes → 400
@@ -265,12 +265,12 @@ notes; status → RESOLVED with resolver + time
 
 ### Implementation for User Story 5
 
-- [ ] T036 [US5] Implement resolve in `backend/src/events/service.ts` + route
+- [x] T036 [US5] Implement resolve in `backend/src/events/service.ts` + route
       POST /api/events/:id/resolve: notes non-empty (400); role path — technician:
       must be assignee AND status==ACKNOWLEDGED (409 otherwise); admin: any active
       status (403 for VIEWER/other technician); set resolvedBy/resolvedAt/notes +
       RESOLVED history (FR-012/013)
-- [ ] T037 [US5] Frontend Resolve form on EventDetail (notes textarea required,
+- [x] T037 [US5] Frontend Resolve form on EventDetail (notes textarea required,
       client+server validation)
 
 ---
@@ -285,17 +285,17 @@ all entries in order
 
 ### Tests for User Story 6
 
-- [ ] T038 [P] [US6] Contract test `backend/tests/contract/detail-history.contract.test.ts`:
+- [x] T038 [P] [US6] Contract test `backend/tests/contract/detail-history.contract.test.ts`:
       GET /api/events/:id returns full chronological history (CREATED, ASSIGNED,
       optional REASSIGNED, ACKNOWLEDGED, RESOLVED) each with actor UserDTO +
       createdAt (FR-014); visible to VIEWER (FR-015); 404 unknown id
 
 ### Implementation for User Story 6
 
-- [ ] T039 [US6] Implement GET /api/events/:id in
+- [x] T039 [US6] Implement GET /api/events/:id in
       `backend/src/events/routes.ts` returning EventDetailDTO incl. history +
       reporter/assignee as UserDTO (no email) (FR-015/FR-018)
-- [ ] T040 [P] [US6] Frontend EventDetail history timeline component
+- [x] T040 [P] [US6] Frontend EventDetail history timeline component
       (`frontend/src/pages/EventDetail.tsx`): ordered trail, actor name+role,
       timestamps, action badges (US6-1)
 
@@ -303,10 +303,10 @@ all entries in order
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T041 FR-coverage sweep: verify every FR-001…FR-019 has a passing test in
+- [x] T041 FR-coverage sweep: verify every FR-001…FR-019 has a passing test in
       `backend/tests/`; any FR without a test is a defect — fix before finishing;
       report the FR→test matrix in the completion output (no separate doc)
-- [ ] T042 Final convergence gate: `npm test` (all workspaces) green, `npm run lint`
+- [x] T042 Final convergence gate: `npm test` (all workspaces) green, `npm run lint`
       clean, `npx prisma migrate deploy` idempotent against DATABASE_URL (and
       TEST_DATABASE_URL once the Neon test branch exists), README.md documents the
       two dev URLs + required `.env` keys, and quickstart.md §3 passes manually

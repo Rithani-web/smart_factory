@@ -1,0 +1,134 @@
+// Single source of truth for all data (Constitution IV).
+// See specs/001-mvp-event-lifecycle/data-model.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TECHNICIAN
+  VIEWER
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EventStatus {
+  OPEN
+  ASSIGNED
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
+enum HistoryAction {
+  CREATED
+  ASSIGNED
+  REASSIGNED
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  passwordHash       String
+  role               Role     @default(VIEWER)
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  reportedEvents       ProductionEvent[]  @relation("Reporter")
+  resolvedEvents       ProductionEvent[]  @relation("Resolver")
+  assignments          Assignment[]
+  rosterEntries        DutyRosterEntry[]
+  notifications        Notification[]
+  historyEntries       HistoryEntry[]
+}
+
+model ProductionEvent {
+  id              String      @id @default(cuid())
+  title           String
+  description     String
+  machineRef      String
+  severity        Severity
+  status          EventStatus @default(OPEN)
+  reporterId      String
+  reporter        User        @relation("Reporter", fields: [reporterId], references: [id])
+  resolvedById    String?
+  resolvedBy      User?       @relation("Resolver", fields: [resolvedById], references: [id])
+  resolutionNotes String?
+  acknowledgedAt  DateTime?
+  resolvedAt      DateTime?
+  createdAt       DateTime    @default(now())
+
+  assignments   Assignment[]
+  notifications Notification[]
+  history       HistoryEntry[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Assignment {
+  id           String          @id @default(cuid())
+  eventId      String
+  event        ProductionEvent @relation(fields: [eventId], references: [id])
+  technicianId String
+  technician   User            @relation(fields: [technicianId], references: [id])
+  assignedAt   DateTime        @default(now())
+  active       Boolean         @default(true)
+
+  @@index([eventId, active])
+}
+
+model DutyRosterEntry {
+  id           String   @id @default(cuid())
+  technicianId String
+  technician   User     @relation(fields: [technicianId], references: [id])
+  startsAt     DateTime
+  endsAt       DateTime
+
+  @@index([technicianId, startsAt, endsAt])
+}
+
+model Notification {
+  id          String            @id @default(cuid())
+  eventId     String
+  event       ProductionEvent   @relation(fields: [eventId], references: [id])
+  recipientId String
+  recipient   User              @relation(fields: [recipientId], references: [id])
+  channel     String            @default("email")
+  status      NotificationStatus
+  error       String?
+  sentAt      DateTime          @default(now())
+
+  @@index([eventId])
+}
+
+model HistoryEntry {
+  id        String          @id @default(cuid())
+  eventId   String
+  event     ProductionEvent @relation(fields: [eventId], references: [id])
+  action    HistoryAction
+  actorId   String
+  actor     User            @relation(fields: [actorId], references: [id])
+  detail    String?
+  createdAt DateTime        @default(now())
+
+  @@index([eventId, createdAt])
+}

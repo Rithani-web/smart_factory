@@ -3,19 +3,23 @@
 .env.*
 *.pem
 
-# Python
+# Node / TypeScript
+node_modules/
+dist/
+build/
+*.log
+coverage/
+.vite/
+
+# Python (legacy template artifacts)
 __pycache__/
 *.py[cod]
-*.egg-info/
 .venv/
 venv/
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-htmlcov/
-.coverage
-dist/
-build/
+
+# Prisma
+backend/prisma/*.db
 
 # Databases
 *.db
