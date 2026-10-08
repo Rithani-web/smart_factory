@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/dashboard" className={navItem}>
             Dashboard
           </NavLink>
-          <NavLink to="/" className={navItem} end>
+          <NavLink to="/events" className={navItem}>
             Events
           </NavLink>
           <NavLink to="/teams" className={navItem}>
@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NavLink to="/dashboard" className="hover:underline">
               Dashboard
             </NavLink>
-            <NavLink to="/" className="hover:underline">
+            <NavLink to="/events" className="hover:underline">
               Events
             </NavLink>
             <NavLink to="/teams" className="hover:underline">
